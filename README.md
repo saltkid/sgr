@@ -6,6 +6,7 @@
 ## Dependencies
 - [fzf](https://github.com/junegunn/fzf) - for the fuzzy findng
 - [sed](https://github.com/mbuilov/sed-windows) - for truncating `\.git\` from the found git repos
+
 *You can install both with [chocolatey](https://chocolatey.org/)*
 ```
 choco install fzf sed
