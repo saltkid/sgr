@@ -1,5 +1,10 @@
 @echo off
 
+if not exist "%~dp0dirs.txt" (
+    echo %userprofile%\projects>"%~dp0dirs.txt"
+)
+
+
 if "%~1" neq "" (
     set "selected=%~1"
 ) else (
