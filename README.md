@@ -1,7 +1,7 @@
 # sift
 **sift** is a wrapper around [fzf](https://github.com/junegunn/fzf) whose search list only includes local git repos in selected directories.
-    - *selected directories* are defined in `dirs.txt` in the same directory as **sift**
-    - *selected directories* are **not** git repos. They **contain** git repos
+- *selected directories* are defined in `dirs.txt` in the same directory as **sift**
+- *selected directories* are **not** git repos. They **contain** git repos
 
 ## Dependencies
 - [fzf](https://github.com/junegunn/fzf) - for the fuzzy findng
