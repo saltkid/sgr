@@ -136,13 +136,80 @@ if not "%~1"=="" (
 
     if /i "%~1"=="remove" (
         if "%~2"=="" (
-            echo No path specified for "sift remove"
+            echo No arg specified for "remove"
             exit /b 1
         )
+
+        set /a "hyphen_position=0"
+        set /a "hyphen_count=0"
+        set "list_arg=%~2"
+
+        rem identify the position of the hyphen
+        for /l %%i in (0,1,100) do (
+            set "char=!list_arg:~%%i,1!"
+            if "!char!"=="-" (
+                if %%i==0 (
+                    echo negative numbers are not allowed
+                    exit /b 1
+                )
+                set /a hyphen_count+=1
+                set /a hyphen_position=%%i
+            )
+        )
+        echo !hyphen_count!
+        echo !hyphen_position!
+
+        if !hyphen_count!==1 (
+            rem split %2 into two parts
+            for /f "tokens=1,* delims=-" %%a in ("!list_arg!") do (
+                set "range_start=%%a"
+                set "range_end=%%b"
+            )
+
+            rem check if each part is a number
+            if 1!range_start! neq +1!range_start! (
+                echo !range_start! is not a valid starting range
+                exit /b 1
+            )
+            if 1!range_end! neq +1!range_end! (
+                echo !range_end! is not a valid ending range
+                exit /b 1
+            )
+            rem check if starting range is smaller than ending range
+            if !range_start! gtr !range_end! (
+                echo starting range '!range_start!' must be smaller than ending range '!range_end!'
+                exit /b 1
+            )
+            rem valid range, remove dirs
+            echo --------------------removed------------------------
+            sed -n "!range_start!,!range_end!p" "%~dp0dirs.txt"
+            sed -i "!range_start!,!range_end!d" "%~dp0dirs.txt"
+            echo ---------------------------------------------------
+            exit /b 0
+        )
+
+        if !hyphen_count!==0 (
+            rem check if a number
+            if 1%2 neq +1%2 (
+                echo %~2 is not a valid line number
+                exit /b 1
+            )
+
+            set "check_idx=%~2"
+            echo --------------------removed------------------------
+            sed -n "!check_idx!p" "%~dp0dirs.txt"
+            sed -i "!check_idx!d" "%~dp0dirs.txt"
+            echo ---------------------------------------------------
+            exit /b 0
+        )
+
         rem arg is path, remove path from dirs.txt
         set "to_remove=%~f2"
         set "to_remove=!to_remove:\=\\!"
+        echo --------------------removed-----------------------
+        sed -n "/!to_remove!/p" "%~dp0dirs.txt"
         sed -i "/!to_remove!/Id" "%~dp0dirs.txt"
+        echo ---------------------------------------------------
         exit /b 0
     )
 )
