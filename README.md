@@ -1,7 +1,7 @@
 # sift
 **sift** is a wrapper around [fzf](https://github.com/junegunn/fzf) whose search list only includes local git repos in selected directories.
 - *selected directories* are defined in `dirs.txt` in the same directory as **sift**
-- *selected directories* are **not** git repos. They **contain** git repos
+- *selected directories* **contain** git repos **AND** can be git repos themselves
 
 ## Dependencies
 - [fzf](https://github.com/junegunn/fzf) - for the fuzzy findng
@@ -28,6 +28,7 @@ choco install fzf sed
     %userprofile%\projects
     C:\Users\<username>\spaces and abs paths\are\okay
     %other_env_vars%\are\also\okay
+    %userprofile%\path\to\single\git\repo\is\okay
     ```
 
 4. Open a terminal and run `path/to/sift.bat`
@@ -86,11 +87,11 @@ and
     "keys": "ctrl+shift+f",
     "command": {
         "action": "newTab",
-        "commandline": "cmd.exe /K sift"
+        "commandline": "cmd.exe /K sift && nvim ."
     }
 }
 ```
-Notice that we just added `&& nvim .` after `sift` on both shortcuts. That's it. You can replace `sift` with any command you want, to execute anything after **sift** is done changing directories.
+Notice that we just added `&& nvim .` after `sift` on both shortcuts. That's it. You can replace `&& nvim .` with any command you want, to execute anything after **sift** is done changing directories.
 
 ## Credits
 - [ThePrimeagen](https://github.com/ThePrimeagen) for the idea (specifically, his [tmux-sessionizer](https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer))
