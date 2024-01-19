@@ -34,7 +34,8 @@ choco install fzf sed
     - if you have `sift.bat` in your PATH, you can just run `sift`
 5. Now, it'll open up the usual [fzf](https://github.com/junegunn/fzf) interface. Select a repo and it'll `cd` your current terminal to that path
 
-## Extra: calling sift through a shortcut in Windows Terminal
+## Extra
+### 1. Calling sift through a shortcut in Windows Terminal
 1. Add **sift** to your PATH **OR** just keep in mind its location
 2. Open Windows Terminal and go to settings (`Ctrl+,`)
 3. Open settings.json
@@ -67,6 +68,29 @@ Below will open a new tab with the [fzf](https://github.com/junegunn/fzf) prompt
 "commandline" : "cmd.exe /K \"C:\\Users\\saltkid\\tools\\sift.bat\""
 ```
 The two escaped quotation marks are there incase your path has spaces in it.
+
+### 2. Modify the above two shortcuts to execute something else after **sift**
+
+Instead of just changing directories, in this example, the below snippets will immediately open up nvim afterwards. Just a small change
+```
+{
+    "name": "Find and Goto Git Repository (nvim)",
+    "keys": "ctrl+f",
+    "command": { "action": "sendInput", "input": "sift && nvim .\u000D" },
+}, 
+```
+and 
+```
+{
+    "name": "Find and Goto Git Repository (nvim)",
+    "keys": "ctrl+shift+f",
+    "command": {
+        "action": "newTab",
+        "commandline": "cmd.exe /K sift"
+    }
+}
+```
+Notice that we just added `&& nvim .` after `sift` on both shortcuts. That's it. You can replace `sift` with any command you want, to execute anything after **sift** is done changing directories.
 
 ## Credits
 - [ThePrimeagen](https://github.com/ThePrimeagen) for the idea (specifically, his [tmux-sessionizer](https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer))
