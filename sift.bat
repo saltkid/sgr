@@ -133,6 +133,25 @@ if not "%~1"=="" (
         echo ---------------------------------------------------
         exit /b 0
     )
+
+    if /i "%~1"=="remove" (
+        if "%~2"=="" (
+            echo No path specified for "sift remove"
+            exit /b 1
+        )
+        for /f "usebackq delims=" %%i in ("%~dp0dirs.txt") do (
+            set "clean_line=%%i"
+            set "clean_line=!clean_line:~0,-1!"
+            if not "%%i"=="%~f2" (
+                echo !clean_line!>>"%~dp0temp_repos.txt"
+            ) else (
+                echo removed "%~2"
+            )
+        )
+        del "%~dp0dirs.txt"
+        ren "%~dp0temp_repos.txt" "dirs.txt"
+        exit /b 0
+    )
 )
 endlocal
 
