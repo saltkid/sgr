@@ -192,7 +192,7 @@ if not "%~1"=="" (
 
         if !hyphen_count!==0 (
             rem check if a number
-            if 1%2==+1%2 (
+            if not 1%2 neq +1%2 (
                 set "check_idx=%~2"
                 echo --------------------removed------------------------
                 sed -n "!check_idx!p" "%~dp0dirs.txt"
