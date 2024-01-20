@@ -4,6 +4,10 @@ if not exist "%~dp0dirs.txt" (
     echo %userprofile%\projects>"%~dp0dirs.txt"
 )
 
+if "%~1"=="" (
+    goto select_repos
+)
+
 setlocal enabledelayedexpansion
 if not "%~1"=="" (
     if /i "%~1"=="add" (
@@ -156,8 +160,6 @@ if not "%~1"=="" (
                 set /a hyphen_position=%%i
             )
         )
-        echo !hyphen_count!
-        echo !hyphen_position!
 
         if !hyphen_count!==1 (
             rem split %2 into two parts
@@ -190,17 +192,14 @@ if not "%~1"=="" (
 
         if !hyphen_count!==0 (
             rem check if a number
-            if 1%2 neq +1%2 (
-                echo %~2 is not a valid line number
-                exit /b 1
+            if 1%2==+1%2 (
+                set "check_idx=%~2"
+                echo --------------------removed------------------------
+                sed -n "!check_idx!p" "%~dp0dirs.txt"
+                sed -i "!check_idx!d" "%~dp0dirs.txt"
+                echo ---------------------------------------------------
+                exit /b 0
             )
-
-            set "check_idx=%~2"
-            echo --------------------removed------------------------
-            sed -n "!check_idx!p" "%~dp0dirs.txt"
-            sed -i "!check_idx!d" "%~dp0dirs.txt"
-            echo ---------------------------------------------------
-            exit /b 0
         )
 
         rem arg is path, remove path from dirs.txt
@@ -215,13 +214,13 @@ if not "%~1"=="" (
 )
 endlocal
 
+:select_repos
 rem select git repos from the list of directories in dirs.txt
 for /f "usebackq delims=" %%i in (`type %~dp0dirs.txt`) do (
     for /f "delims=" %%j in ('dir /b /ad /s "%%i\*.git" ^| sed "s/\\.git$//"') do (
-    	echo %%j>>"%~dp0temp_repos.txt"
+        echo %%j>>"%~dp0temp_repos.txt"
     )
 )
-
 rem check if temp_repos.txt exists aka if found any git repos
 if not exist "%~dp0temp_repos.txt" (
     echo No local git repos found under:
