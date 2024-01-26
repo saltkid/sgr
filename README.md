@@ -5,19 +5,28 @@
 
 ## Dependencies (must be installed and added to your PATH)
 - [fzf](https://github.com/junegunn/fzf)
-- [sed](https://github.com/mbuilov/sed-windows)
+*You can install fzf with [chocolatey](https://chocolatey.org/)*
+```
+choco install fzf
+```
+***optional***
+- **recommeded shell** is [pwsh](https://github.com/PowerShell/PowerShell)
 
-*You can install both with [chocolatey](https://chocolatey.org/)*
+*You can also install pwsh with [chocolatey](https://chocolatey.org/)*
 ```
-choco install fzf sed
+choco install pwsh
 ```
+but the regular `PowerShell` that comes with Windows will be fine.
+
+`cmd` will not work since its current directory cannot be changed by a `.ps1` script
 
 ## Getting Started
+Before all of this, to use `sift.ps1`, make sure you set your `ExecutionPolicy` to `RemoteSigned`.
 ### Installation
-1. Download `sift.bat`
-2. ***Optionally*** add `sift.bat` to your PATH
-3. ***Optionally*** create `dirs.txt` in the same directory as `sift.bat` and put directories containing git repos.
-    - if there's no `dirs.txt` in the same directory as `sift.bat`, it will create one containing only one line:
+1. Download `sift.ps1`. That's it
+- ***Optionally*** add `sift` to your PATH
+- ***Optionally*** create `dirs.txt` in the same directory as `sift` and put directories containing git repos.
+    - if there's no `dirs.txt` in the same directory as `sift`, it will create one containing only one line:
       ```
       %userprofile%\projects
       ```
@@ -32,9 +41,9 @@ choco install fzf sed
     %userprofile%\path\to\single\git\repo\is\okay
     ```
 ### Basic Usage
-1. Open a terminal and run `path/to/sift.bat`
-    - if you have `sift.bat` in your PATH, you can just run `sift`
-2. Now, it'll open up the usual [fzf](https://github.com/junegunn/fzf) interface. Select a repo and it'll `cd` your current terminal to that path
+1. Open a terminal and run `path/to/sift`
+    - if you have `sift` in your PATH, you can just run `sift`
+2. This will open up the usual [fzf](https://github.com/junegunn/fzf) interface. Select a repo and it'll `cd` your current terminal to that path
 
 ### Commands
 **sift** has optional commands that handles modifying `dirs.txt`
@@ -51,6 +60,15 @@ choco install fzf sed
     - lists `dirs.txt` if no args are given
     - if `<int>` is provided, it will list the dir at line `<int>` in `dirs.txt`
     - if `<int_x>-<int_y>` is provided, it will list the dirs between lines `<x>` and `<y>`
+
+**other commands**:
+
+4. `help`
+    - **args**: none
+    - prints help message along with the list of commands
+5. `version`
+    - **args**: none
+    - prints version
 
 ## Extra
 ### 1. Calling sift through a shortcut in Windows Terminal
@@ -74,17 +92,19 @@ Below will open a new tab with the [fzf](https://github.com/junegunn/fzf) prompt
     "keys": "ctrl+shift+f",
     "command": {
         "action": "newTab",
-        "commandline": "cmd.exe /K sift"
+        "commandline": "C:\\Program Files\\PowerShell\\7\\pwsh.exe -noexit -c \"sift\""
     }
 }
 ```
 
 *Notes:* 
-- these extras assume you have `sift.bat` in your PATH. If not, use `"input": "\"path\\to\\sift.bat\"\u000D"` instead
+- make sure you put the full path to `pwsh` even if its in your PATH
+- if you wish to use `powershell.exe` instead, just replace `C:\\Program Files\\PowerShell\\7\\pwsh.exe` with `powershell.exe`
+- these extras assume you have `sift` in your PATH. If not, use `"input": "\"path\\to\\sift\"\u000D"` instead
 - `ctrl+shift+f` is by default bound to the action of *opening the search dialog box* in Windows Terminal. If you want `ctrl+shift+f` for running **sift** in *new tab*, remap the `"find"` command to something else like `ctrl+alt+f`
 - Windows uses backslashes so those need to be escaped here. Example:
 ```
-"commandline" : "cmd.exe /K \"C:\\Users\\username\\tools\\sift.bat\""
+"commandline" : "powershell.exe -noexit -c \"C:\\Users\\username\\tools\\sift.bat\""
 ```
 The two escaped quotation marks are there incase your path has spaces in it.
 
@@ -105,15 +125,14 @@ and
     "keys": "ctrl+shift+f",
     "command": {
         "action": "newTab",
-        "commandline": "cmd.exe /K sift && nvim ."
+        "commandline": "C:\\Program Files\\PowerShell\\7\\pwsh.exe /K sift && nvim ."
     }
 }
 ```
 Notice that we just added `&& nvim .` after `sift` on both shortcuts. That's it. You can replace `&& nvim .` with any command you want, to execute anything after **sift** is done changing directories.
 
 ## Credits
-- [ThePrimeagen](https://github.com/ThePrimeagen) for the idea (specifically, his [tmux-sessionizer](https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer))
+- [ThePrimeagen](https://github.com/ThePrimeagen) for the idea (specifically, his [tmux-sessionizer](https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer), the quick switching part)
 - [fzf](https://github.com/junegunn/fzf)
-- [sed](https://github.com/mbuilov/sed-windows)
 - [chocolatey](https://chocolatey.org/)
 

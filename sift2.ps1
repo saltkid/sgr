@@ -44,7 +44,6 @@ if ($args.Count -lt 1)
         # force because .git is a hidden directory
         Get-ChildItem -Path $_ -Filter "*.git" -Recurse -Directory -Force |
             ForEach-Object {
-                # remove the .git from the path before piping it into fzf
                 $_.FullName -replace '\\\.git$'
             }
         } | fzf
