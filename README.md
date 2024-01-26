@@ -125,7 +125,7 @@ and
     "keys": "ctrl+shift+f",
     "command": {
         "action": "newTab",
-        "commandline": "C:\\Program Files\\PowerShell\\7\\pwsh.exe /K sift && nvim ."
+        "commandline": "C:\\Program Files\\PowerShell\\7\\pwsh.exe -noexit -c \"sift && nvim .\""
     }
 }
 ```
