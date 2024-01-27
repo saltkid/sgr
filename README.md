@@ -1,16 +1,30 @@
+# Table of Contents
+- [sift](#sift)
+- [Dependencies](#dependencies)
+    - [Recommended Shell](#recommended-shell)
+- [Getting Started](#getting-started)
+    - [Installation](#installation)
+    - [Basic Usage](#basic-usage)
+        - [Commands](#commands)
+- [Extras](#extras)
+    - [Calling sift through a shortcut in Windows Terminal](#calling-sift-through-a-shortcut-in-windows-terminal)
+    - [Modify the above two shortcuts to execute something else after **sift**](#modify-the-above-two-shortcuts-to-execute-something-else-after-sift)
+
+---
 # sift
 **sift** is a wrapper around [fzf](https://github.com/junegunn/fzf) whose search list only includes local git repos in selected directories.
 - *selected directories* are defined in `dirs.txt` in the same directory as **sift**
 - *selected directories* **contain** git repos **AND** can be git repos themselves
 
-## Dependencies (must be installed and added to your PATH)
+# Dependencies
+*must be installed and added to your PATH*
 - [fzf](https://github.com/junegunn/fzf)
 
 *You can install fzf with [chocolatey](https://chocolatey.org/)*
 ```
 choco install fzf
 ```
-### recommended shell 
+## Recommended shell 
 - [pwsh](https://github.com/PowerShell/PowerShell)
 
 *You can also install pwsh with [chocolatey](https://chocolatey.org/)*
@@ -21,9 +35,10 @@ but the regular `PowerShell` that comes with Windows will be fine.
 
 `cmd` will not work since its current directory cannot be changed by a `.ps1` script
 
-## Getting Started
+---
+# Getting Started
 Before all of this, to use `sift.ps1`, make sure you set your `ExecutionPolicy` to `RemoteSigned`.
-### Installation
+## Installation
 1. Download `sift.ps1`. That's it
 - ***Optionally*** add `sift` to your PATH
 - ***Optionally*** create `dirs.txt` in the same directory as `sift` and put directories containing git repos.
@@ -41,12 +56,12 @@ Before all of this, to use `sift.ps1`, make sure you set your `ExecutionPolicy` 
     %other_env_vars%\are\also\okay
     %userprofile%\path\to\single\git\repo\is\okay
     ```
-### Basic Usage
+# Basic Usage
 1. Open a terminal and run `path/to/sift`
     - if you have `sift` in your PATH, you can just run `sift`
 2. This will open up the usual [fzf](https://github.com/junegunn/fzf) interface. Select a repo and it'll `cd` your current terminal to that path
 
-### Commands
+## Commands
 **sift** has optional commands that handles modifying `dirs.txt`
 1. `add`
     - **args**: `path/to/dir`
@@ -62,7 +77,7 @@ Before all of this, to use `sift.ps1`, make sure you set your `ExecutionPolicy` 
     - if `<int>` is provided, it will list the dir at line `<int>` in `dirs.txt`
     - if `<int_x>-<int_y>` is provided, it will list the dirs between lines `<x>` and `<y>`
 
-**other commands**:
+### other commands:
 
 4. `help`
     - **args**: none
@@ -71,14 +86,15 @@ Before all of this, to use `sift.ps1`, make sure you set your `ExecutionPolicy` 
     - **args**: none
     - prints version
 
-## Extra
-### 1. Calling sift through a shortcut in Windows Terminal
+---
+# Extras
+## Calling sift through a shortcut in Windows Terminal
 1. Add **sift** to your PATH **OR** just keep in mind its location
 2. Open Windows Terminal and go to settings (`Ctrl+,`)
 3. Open settings.json
 4. Under `"actions"`, there are a list of commands. Add either of these two snippets (or both):
 
-Below will send the string `sift` to the terminal and press enter when you press `ctrl+f`. This will open up the [fzf](https://github.com/junegunn/fzf) prompt waiting for input.
+Below will just insert the string `sift` to the terminal and press enter when you press `ctrl+f`. This will open up the [fzf](https://github.com/junegunn/fzf) prompt waiting for input.
 ```
 {
     "name": "Find and Goto Git Repository",
@@ -109,7 +125,7 @@ Below will open a new tab with the [fzf](https://github.com/junegunn/fzf) prompt
 ```
 The two escaped quotation marks are there incase your path has spaces in it.
 
-### 2. Modify the above two shortcuts to execute something else after **sift**
+## Modify the above two shortcuts to execute something else after **sift**
 
 Instead of just changing directories, in this example, the below snippets will immediately open up nvim afterwards. Just a small change
 ```
