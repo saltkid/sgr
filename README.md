@@ -5,12 +5,13 @@
 
 ## Dependencies (must be installed and added to your PATH)
 - [fzf](https://github.com/junegunn/fzf)
+- 
 *You can install fzf with [chocolatey](https://chocolatey.org/)*
 ```
 choco install fzf
 ```
-***optional***
-- **recommeded shell** is [pwsh](https://github.com/PowerShell/PowerShell)
+### recommended shell 
+- [pwsh](https://github.com/PowerShell/PowerShell)
 
 *You can also install pwsh with [chocolatey](https://chocolatey.org/)*
 ```
