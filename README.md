@@ -5,7 +5,7 @@
 
 ## Dependencies (must be installed and added to your PATH)
 - [fzf](https://github.com/junegunn/fzf)
-- 
+
 *You can install fzf with [chocolatey](https://chocolatey.org/)*
 ```
 choco install fzf
