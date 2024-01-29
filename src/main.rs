@@ -121,33 +121,24 @@ fn add(dir: &str) -> Result<(), String> {
             trimmed_path,
         ))?;
 
+    let file_path = Path::new("dirs.txt");
     let mut file = OpenOptions::new()
         .read(true)
         .write(true)
         .append(true)
-        .open("dirs.txt")
+        .open(&file_path)
         .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
 
-    let reader = BufReader::new(&file);
-    for (i, line) in reader.lines().enumerate() {
-        match line {
-            Ok(line) => {
-                if line.trim().eq_ignore_ascii_case(trimmed_path) {
-                    return Err(format!(
-                        "\"{}\" already exists in dirs.txt on line {}",
-                        trimmed_path,
-                        i + 1
-                    ));
-                }
-            }
-            Err(e) => {
-                return Err(format!(
-                    "Failed to read \"dirs.txt\" at line {}: {}",
-                    i + 1,
-                    e
-                ));
-            }
-        }
+    if BufReader::new(&file)
+        .lines()
+        .filter_map(|line| line.ok())
+        .any(|line| line.trim().eq_ignore_ascii_case(trimmed_path))
+    {
+        return Err(format!(
+            "\"{}\" already exists in \"{}\"",
+            trimmed_path,
+            file_path.display()
+        ));
     }
 
     if let Err(e) = writeln!(file, "{}", trimmed_path) {
