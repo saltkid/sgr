@@ -12,3 +12,26 @@ impl PathExt for Path {
         Ok(self.to_path_buf())
     }
 }
+
+pub trait StrExt {
+    fn is_digit_range(&self) -> bool;
+}
+
+impl StrExt for str {
+    fn is_digit_range(&self) -> bool {
+        let parts: Vec<&str> = self.split('-').collect();
+
+        if parts.len() != 2 {
+            return false;
+        }
+
+        let start = parts[0].parse::<u32>();
+        let end = parts[1].parse::<u32>();
+
+        if start.is_err() || end.is_err() {
+            return false;
+        }
+
+        return start.unwrap() <= end.unwrap();
+    }
+}

@@ -1,6 +1,6 @@
 // standard library
-use std::fs::OpenOptions;
-use std::io::{BufRead, BufReader, Write};
+use std::fs::{remove_file, rename, OpenOptions};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -158,9 +158,54 @@ fn add(dir: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn remove(args: &str) -> Result<(), String> {
-    println!("ran remove with {:?}", args);
-    return Ok(());
+fn remove(arg: &str) -> Result<(), String> {
+    // check if a number, a range of numbers like x-y, else its a path
+    if arg.chars().all(|char| char.is_digit(10)) {
+        todo!();
+    } else if arg.is_digit_range() {
+        todo!();
+    } else {
+        let abs_path = Path::new(&arg)
+            .canonicalize()
+            .map_err(|e| format!("Failed to canonicalize path {}: {}", &arg, e))?
+            .must_be_dir()?
+            .display()
+            .to_string();
+        let trimmed_path = abs_path.strip_prefix(r#"\\?\"#).unwrap_or(&abs_path);
+
+        let file_path = Path::new("dirs.txt");
+        let file = OpenOptions::new()
+            .read(true)
+            .open(&file_path)
+            .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
+
+        let temp_file_path = Path::new("temp_dirs.txt");
+        let temp_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open(&temp_file_path)
+            .map_err(|e| format!("Failed to create \"temp_dirs.txt\": {}", e))?;
+
+        let mut writer = BufWriter::new(&temp_file);
+        BufReader::new(&file)
+            .lines()
+            .filter_map(|line| line.ok())
+            .filter(|line| !line.trim().eq_ignore_ascii_case(&trimmed_path))
+            .try_for_each(|line| {
+                writeln!(writer, "{}", line)
+                    .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
+            })?;
+        writer
+            .flush()
+            .map_err(|e| format!("Failed to flush temp_dirs.txt: {}", e))?;
+
+        remove_file(&file_path)
+            .map_err(|e| format!("Failed to remove file \"dirs.txt\": {}", e))?;
+        rename(&temp_file_path, &file_path)
+            .map_err(|e| format!("failed to rename \"temp_dirs.txt\" to \"dirs.txt\": {}", e))?;
+    }
+
+    Ok(())
 }
 
 fn list(args: &str) -> Result<(), String> {
