@@ -1,7 +1,8 @@
 // standard library
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 
 // third party
 use walkdir::WalkDir;
@@ -15,16 +16,24 @@ fn main() {
 
     if raw_args.len() < 2 {
         match run() {
-            Ok(_) => println!("done"),
-            Err(e) => println!("{}", e),
+            Ok(path) => println!("{}", path),
+            Err(e) => eprintln!("{}", e),
         }
         return;
     }
 
     let command = &raw_args[1];
+    match command.as_str() {
+        "add" | "remove" | "list" => {}
+        _ => {
+            eprintln!("unknown command '{}'", command);
+            return;
+        }
+    };
+
     let args = &raw_args[2..];
     if args.is_empty() {
-        eprintln!("no args given for '{command}'");
+        eprintln!("no args given for '{}'", command);
         return;
     }
 
@@ -37,7 +46,7 @@ fn main() {
         "add" => add(arg),
         "remove" => remove(arg),
         "list" => list(arg),
-        _ => Err("unknown command".to_string()),
+        _ => Err(format!("unknown command '{}'", command)),
     };
     match res {
         Ok(_) => println!("done"),
@@ -45,24 +54,49 @@ fn main() {
     }
 }
 
-fn run() -> Result<(), String> {
+fn run() -> Result<String, String> {
     let file = OpenOptions::new()
         .read(true)
         .open("dirs.txt")
         .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
 
     let reader = BufReader::new(file);
-    for line in reader.lines() {
-        match line {
-            Ok(line) => {
-                println!("{}", line);
-            }
-            Err(e) => {
-                return Err(format!("Failed to read line: {}", e));
+    let lines: Vec<PathBuf> = reader
+        .lines()
+        .filter_map(|line| line.ok())
+        .map(|line| PathBuf::from(line))
+        .collect();
+
+    let mut fzf_process = Command::new("fzf")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("failed to start fzf: {}", e))?;
+
+    if let Some(stdin) = fzf_process.stdin.as_mut() {
+        for path in lines {
+            for e in WalkDir::new(&path)
+                .into_iter()
+                .filter_map(|e| e.ok())
+                .filter(|e| e.file_type().is_dir() && e.path().ends_with(".git"))
+            {
+                let git_repo = e.path().parent().unwrap_or(e.path());
+                writeln!(stdin, "{}", git_repo.display())
+                    .map_err(|e| format!("Failed to write to stdin: {}", e))?;
             }
         }
     }
-    Ok(())
+
+    let output = fzf_process
+        .wait_with_output()
+        .map_err(|e| format!("failed to wait for fzf: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!("Did not choose a directory"));
+    }
+
+    let selected_path = String::from_utf8_lossy(&output.stdout).to_string();
+    return Ok(selected_path);
 }
 
 fn add(dir: &str) -> Result<(), String> {
