@@ -70,6 +70,11 @@ fn add(dir: &String) -> Result<(), String> {
         return Err(format!("\"{}\" is not a directory", abs_path.display()));
     }
 
+    let abs_path_string = abs_path.display().to_string();
+    let trimmed_path = abs_path_string
+        .strip_prefix(r#"\\?\"#)
+        .unwrap_or(&abs_path_string);
+
     // TODO: check if abs_path contains any .git subdir; do walkdir
 
     let mut file = OpenOptions::new()
@@ -83,10 +88,10 @@ fn add(dir: &String) -> Result<(), String> {
     for (i, line) in reader.lines().enumerate() {
         match line {
             Ok(line) => {
-                if line == abs_path.display().to_string() {
+                if line == trimmed_path {
                     return Err(format!(
                         "\"{}\" already exists in dirs.txt on line {}",
-                        abs_path.display(),
+                        trimmed_path,
                         i + 1
                     ));
                 }
@@ -101,18 +106,11 @@ fn add(dir: &String) -> Result<(), String> {
         }
     }
 
-    let to_write = abs_path
-        .display()
-        .to_string()
-        .strip_prefix(r#"\\?\"#)
-        .unwrap_or(&abs_path.display().to_string())
-        .to_string();
-
-    if let Err(e) = writeln!(file, "{}", to_write) {
+    if let Err(e) = writeln!(file, "{}", trimmed_path) {
         return Err(format!("Failed to write to file: {}", e));
     }
 
-    println!("{} added to dirs.txt", to_write);
+    println!("{} added to dirs.txt", trimmed_path);
     Ok(())
 }
 
