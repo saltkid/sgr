@@ -1,6 +1,14 @@
+// standard library
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
+
+// third party
+use walkdir::WalkDir;
+
+// own
+mod utils;
+use utils::*;
 
 fn main() {
     let raw_args: Vec<String> = std::env::args().collect();
@@ -64,18 +72,24 @@ fn run() -> Result<(), String> {
 fn add(dir: &String) -> Result<(), String> {
     let abs_path = Path::new(&dir)
         .canonicalize()
-        .map_err(|e| format!("Failed to canonicalize path: {}", e))?;
+        .map_err(|e| format!("Failed to canonicalize path: {}", e))?
+        .must_be_dir()?
+        .display()
+        .to_string();
 
-    if !abs_path.is_dir() {
-        return Err(format!("\"{}\" is not a directory", abs_path.display()));
-    }
+    let trimmed_path = abs_path.strip_prefix(r#"\\?\"#).unwrap_or(&abs_path);
 
-    let abs_path_string = abs_path.display().to_string();
-    let trimmed_path = abs_path_string
-        .strip_prefix(r#"\\?\"#)
-        .unwrap_or(&abs_path_string);
-
-    // TODO: check if abs_path contains any .git subdir; do walkdir
+    WalkDir::new(&trimmed_path)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_dir() && e.path().ends_with(".git"))
+        .count()
+        .gt(&0)
+        .then(|| ())
+        .ok_or(format!(
+            "No git repos found in directory '{}'",
+            trimmed_path,
+        ))?;
 
     let mut file = OpenOptions::new()
         .read(true)
@@ -88,7 +102,7 @@ fn add(dir: &String) -> Result<(), String> {
     for (i, line) in reader.lines().enumerate() {
         match line {
             Ok(line) => {
-                if line == trimmed_path {
+                if line.trim().eq_ignore_ascii_case(trimmed_path) {
                     return Err(format!(
                         "\"{}\" already exists in dirs.txt on line {}",
                         trimmed_path,
