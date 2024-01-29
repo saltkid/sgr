@@ -14,9 +14,8 @@ fn main() {
     let raw_args: Vec<String> = std::env::args().collect();
 
     if raw_args.len() < 2 {
-        let res = run();
-        match res {
-            Ok(_) => {}
+        match run() {
+            Ok(_) => println!("done"),
             Err(e) => println!("{}", e),
         }
         return;
@@ -33,17 +32,16 @@ fn main() {
         eprintln!("args '{:?}' will be unused", args[1..].to_vec());
     }
 
-    let arg = &args[0].to_string();
+    let arg = &args[0];
     let res = match command.as_str() {
         "add" => add(arg),
         "remove" => remove(arg),
         "list" => list(arg),
         _ => Err("unknown command".to_string()),
     };
-
     match res {
-        Ok(_) => {}
-        Err(e) => println!("{}", e),
+        Ok(_) => println!("done"),
+        Err(e) => eprintln!("{}", e),
     }
 }
 
@@ -54,7 +52,6 @@ fn run() -> Result<(), String> {
         .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
 
     let reader = BufReader::new(file);
-
     for line in reader.lines() {
         match line {
             Ok(line) => {
@@ -65,11 +62,10 @@ fn run() -> Result<(), String> {
             }
         }
     }
-
     Ok(())
 }
 
-fn add(dir: &String) -> Result<(), String> {
+fn add(dir: &str) -> Result<(), String> {
     let abs_path = Path::new(&dir)
         .canonicalize()
         .map_err(|e| format!("Failed to canonicalize path: {}", e))?
@@ -128,12 +124,12 @@ fn add(dir: &String) -> Result<(), String> {
     Ok(())
 }
 
-fn remove(args: &String) -> Result<(), String> {
+fn remove(args: &str) -> Result<(), String> {
     println!("ran remove with {:?}", args);
     return Ok(());
 }
 
-fn list(args: &String) -> Result<(), String> {
+fn list(args: &str) -> Result<(), String> {
     println!("ran list with {:?}", args);
     return Ok(());
 }
