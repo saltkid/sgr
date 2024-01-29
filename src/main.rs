@@ -164,31 +164,32 @@ fn remove(arg: &str) -> Result<(), String> {
         .open(&temp_file_path)
         .map_err(|e| format!("Failed to create \"temp_dirs.txt\": {}", e))?;
     let mut writer = BufWriter::new(&temp_file);
+    let lines = BufReader::new(&file).lines().filter_map(|line| line.ok());
 
     if arg.chars().all(|char| char.is_digit(10)) {
         let line_num: usize = arg
             .parse()
             .map_err(|e| format!("Unexpected error, unable to parse {} to int: {}", arg, e))?;
 
-        BufReader::new(&file)
-            .lines()
-            .filter_map(|line| line.ok())
+        lines
             .enumerate()
             .filter(|(i, _)| i + 1 != line_num)
             .try_for_each(|(_, line)| {
                 writeln!(writer, "{}", line)
                     .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
             })?;
-        writer
-            .flush()
-            .map_err(|e| format!("Failed to flush temp_dirs.txt: {}", e))?;
-
-        remove_file(&file_path)
-            .map_err(|e| format!("Failed to remove file \"dirs.txt\": {}", e))?;
-        rename(&temp_file_path, &file_path)
-            .map_err(|e| format!("failed to rename \"temp_dirs.txt\" to \"dirs.txt\": {}", e))?;
     } else if arg.is_digit_range() {
-        todo!();
+        let parts: Vec<&str> = arg.split('-').collect();
+        let start = parts[0].parse::<usize>().unwrap();
+        let end = parts[1].parse::<usize>().unwrap();
+
+        lines
+            .enumerate()
+            .filter(|(i, _)| i + 1 < start || i + 1 > end)
+            .try_for_each(|(_, line)| {
+                writeln!(writer, "{}", line)
+                    .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
+            })?;
     } else {
         let abs_path = Path::new(&arg)
             .canonicalize()
@@ -198,23 +199,22 @@ fn remove(arg: &str) -> Result<(), String> {
             .to_string();
         let trimmed_path = abs_path.strip_prefix(r#"\\?\"#).unwrap_or(&abs_path);
 
-        BufReader::new(&file)
-            .lines()
-            .filter_map(|line| line.ok())
+        lines
             .filter(|line| !line.trim().eq_ignore_ascii_case(&trimmed_path))
             .try_for_each(|line| {
                 writeln!(writer, "{}", line)
                     .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
             })?;
-        writer
-            .flush()
-            .map_err(|e| format!("Failed to flush temp_dirs.txt: {}", e))?;
-
-        remove_file(&file_path)
-            .map_err(|e| format!("Failed to remove file \"dirs.txt\": {}", e))?;
-        rename(&temp_file_path, &file_path)
-            .map_err(|e| format!("failed to rename \"temp_dirs.txt\" to \"dirs.txt\": {}", e))?;
     }
+
+    // flush and rename
+    writer
+        .flush()
+        .map_err(|e| format!("Failed to flush temp_dirs.txt: {}", e))?;
+
+    remove_file(&file_path).map_err(|e| format!("Failed to remove file \"dirs.txt\": {}", e))?;
+    rename(&temp_file_path, &file_path)
+        .map_err(|e| format!("failed to rename \"temp_dirs.txt\" to \"dirs.txt\": {}", e))?;
 
     Ok(())
 }
