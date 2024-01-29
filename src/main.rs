@@ -150,9 +150,43 @@ fn add(dir: &str) -> Result<(), String> {
 }
 
 fn remove(arg: &str) -> Result<(), String> {
-    // check if a number, a range of numbers like x-y, else its a path
+    // open files and initialze readers, writers
+    let file_path = Path::new("dirs.txt");
+    let file = OpenOptions::new()
+        .read(true)
+        .open(&file_path)
+        .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
+
+    let temp_file_path = Path::new("temp_dirs.txt");
+    let temp_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .open(&temp_file_path)
+        .map_err(|e| format!("Failed to create \"temp_dirs.txt\": {}", e))?;
+    let mut writer = BufWriter::new(&temp_file);
+
     if arg.chars().all(|char| char.is_digit(10)) {
-        todo!();
+        let line_num: usize = arg
+            .parse()
+            .map_err(|e| format!("Unexpected error, unable to parse {} to int: {}", arg, e))?;
+
+        BufReader::new(&file)
+            .lines()
+            .filter_map(|line| line.ok())
+            .enumerate()
+            .filter(|(i, _)| i + 1 != line_num)
+            .try_for_each(|(_, line)| {
+                writeln!(writer, "{}", line)
+                    .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
+            })?;
+        writer
+            .flush()
+            .map_err(|e| format!("Failed to flush temp_dirs.txt: {}", e))?;
+
+        remove_file(&file_path)
+            .map_err(|e| format!("Failed to remove file \"dirs.txt\": {}", e))?;
+        rename(&temp_file_path, &file_path)
+            .map_err(|e| format!("failed to rename \"temp_dirs.txt\" to \"dirs.txt\": {}", e))?;
     } else if arg.is_digit_range() {
         todo!();
     } else {
@@ -164,20 +198,6 @@ fn remove(arg: &str) -> Result<(), String> {
             .to_string();
         let trimmed_path = abs_path.strip_prefix(r#"\\?\"#).unwrap_or(&abs_path);
 
-        let file_path = Path::new("dirs.txt");
-        let file = OpenOptions::new()
-            .read(true)
-            .open(&file_path)
-            .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
-
-        let temp_file_path = Path::new("temp_dirs.txt");
-        let temp_file = OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open(&temp_file_path)
-            .map_err(|e| format!("Failed to create \"temp_dirs.txt\": {}", e))?;
-
-        let mut writer = BufWriter::new(&temp_file);
         BufReader::new(&file)
             .lines()
             .filter_map(|line| line.ok())
