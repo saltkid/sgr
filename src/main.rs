@@ -145,8 +145,8 @@ fn add(dir: Option<&str>) -> Result<(), String> {
                 collision_msg = format!("collision: \"{}\" already exists", trimmed_path);
             } else if trimmed_path_lowercase.starts_with(&line_lowercase) {
                 collision_msg = format!(
-                    "collision: \"{}\" is a sub dir of \"{}\"",
-                    trimmed_path, line
+                    "collision: \"{}\" is a sub dir of \"{}\"\ngit repos will already be searched for in \"{}\" so adding \"{}\" is redundant",
+                    trimmed_path, line, line, trimmed_path
                 )
             }
 
@@ -193,7 +193,7 @@ fn remove(arg: Option<&str>) -> Result<(), String> {
     _ = file.seek(std::io::SeekFrom::Start(0));
     let lines = BufReader::new(&file).lines().filter_map(|line| line.ok());
 
-    let mut header_arg = "".to_string();
+    let mut _header_arg = "".to_string();
     if arg.chars().all(|char| char.is_digit(10)) {
         let line_num: usize = arg
             .parse()
@@ -213,7 +213,7 @@ fn remove(arg: Option<&str>) -> Result<(), String> {
                     .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
             })?;
 
-        header_arg = format!("line {}", line_num);
+        _header_arg = format!("line {}", line_num);
     } else if arg.is_digit_range() {
         let parts: Vec<&str> = arg.split('-').collect();
         let start = parts[0].parse::<usize>().unwrap();
@@ -243,7 +243,7 @@ fn remove(arg: Option<&str>) -> Result<(), String> {
                     .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
             })?;
 
-        header_arg = format!("lines {}-{}", start, end);
+        _header_arg = format!("lines {}-{}", start, end);
     } else {
         let abs_path = Path::new(&arg)
             .canonicalize()
@@ -260,7 +260,7 @@ fn remove(arg: Option<&str>) -> Result<(), String> {
                     .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
             })?;
 
-        header_arg = format!("\"{}\"", trimmed_path);
+        _header_arg = format!("\"{}\"", trimmed_path);
     }
 
     // flush and rename
@@ -273,7 +273,7 @@ fn remove(arg: Option<&str>) -> Result<(), String> {
         .map_err(|e| format!("failed to rename \"temp_dirs.txt\" to \"dirs.txt\": {}", e))?;
 
     // list updated dir
-    list(Some("all"), Some(format!("removed: {}", header_arg)))?;
+    list(Some("all"), Some(format!("removed: {}", _header_arg)))?;
     Ok(())
 }
 
