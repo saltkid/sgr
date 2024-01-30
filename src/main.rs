@@ -17,11 +17,12 @@ fn main() {
     if raw_args.len() < 2 {
         match run() {
             Ok(path) => println!("{}", path),
-            Err(e) => logln(LogLevel::Error, e),
+            Err(e) => logln(LogLevel::Warn, e),
         }
         return;
     }
 
+    // validate command
     let command = &raw_args[1];
     match command.as_str() {
         "add" | "remove" | "list" => {}
@@ -31,6 +32,7 @@ fn main() {
         }
     };
 
+    // warn user of unused args
     let args = &raw_args[2..];
     if args.len() > 1 {
         logln(
@@ -38,6 +40,8 @@ fn main() {
             format!("args '{:?}' will be unused", args[1..].to_vec()),
         );
     }
+
+    // main functionality
     let arg = match args.is_empty() {
         true => None,
         false => Some(args[0].as_str()),
@@ -62,11 +66,10 @@ fn run() -> Result<String, String> {
         .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
 
     let reader = BufReader::new(file);
-    let lines: Vec<PathBuf> = reader
+    let mut lines = reader
         .lines()
         .filter_map(|line| line.ok())
-        .map(|line| PathBuf::from(line))
-        .collect();
+        .map(|line| PathBuf::from(line));
 
     let mut fzf_process = Command::new("fzf")
         .stdin(Stdio::piped())
@@ -75,17 +78,17 @@ fn run() -> Result<String, String> {
         .map_err(|e| format!("failed to start fzf: {}", e))?;
 
     if let Some(stdin) = fzf_process.stdin.as_mut() {
-        for path in lines {
-            for e in WalkDir::new(&path)
+        lines.try_for_each(|path| {
+            WalkDir::new(&path)
                 .into_iter()
                 .filter_map(|e| e.ok())
                 .filter(|e| e.file_type().is_dir() && e.path().ends_with(".git"))
-            {
-                let git_repo = e.path().parent().unwrap_or(e.path());
-                writeln!(stdin, "{}", git_repo.display())
-                    .map_err(|e| format!("Failed to write to stdin: {}", e))?;
-            }
-        }
+                .try_for_each(|e| {
+                    let git_repo = e.path().parent().unwrap_or(e.path());
+                    writeln!(stdin, "{}", git_repo.display())
+                        .map_err(|e| format!("Failed to write to stdin: {}", e))
+                })
+        })?
     }
 
     let output = fzf_process
@@ -128,13 +131,12 @@ fn add(dir: Option<&str>) -> Result<(), String> {
             trimmed_path,
         ))?;
 
-    let file_path = Path::new("dirs.txt");
     let mut file = OpenOptions::new()
         .read(true)
         .write(true)
         .append(true)
-        .open(&file_path)
-        .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
+        .open("dirs.txt")
+        .map_err(|e| format!("Failed to open \"dirs.txt\": {}", e))?;
 
     let mut collision_msg: String = "".to_string();
     if BufReader::new(&file)
@@ -150,7 +152,7 @@ fn add(dir: Option<&str>) -> Result<(), String> {
 
             } else if trimmed_path_lowercase.starts_with(&line_lowercase) {
                 collision_msg = format!(
-                    "collision: \"{}\" is a sub dir of \"{}\"\ngit repos will already be searched for in \"{}\" so adding \"{}\" is redundant",
+                    "collision: \"{}\" is a sub dir of \"{}\"\n\tgit repos will already be searched for in \"{}\" so adding \"{}\" is redundant",
                     trimmed_path, line, line, trimmed_path
                 );
                 true
@@ -161,7 +163,6 @@ fn add(dir: Option<&str>) -> Result<(), String> {
 
         })
     {
-        println!("collision: {}", collision_msg);
         return Err(collision_msg);
     }
 
@@ -272,7 +273,7 @@ fn remove(arg: Option<&str>) -> Result<(), String> {
         _header_arg = format!("\"{}\"", trimmed_path);
     }
 
-    // flush and rename
+    // need to flush before closing writer
     writer
         .flush()
         .map_err(|e| format!("Failed to flush temp_dirs.txt: {}", e))?;
@@ -300,7 +301,8 @@ fn list(arg: Option<&str>, header: Option<String>) -> Result<(), String> {
         .lines()
         .filter_map(|line| line.ok())
         .count();
-    // reset cursor
+
+    // reset cursor so we can read again
     _ = file.seek(std::io::SeekFrom::Start(0));
     let lines = BufReader::new(&file).lines().filter_map(|line| line.ok());
 
@@ -308,10 +310,12 @@ fn list(arg: Option<&str>, header: Option<String>) -> Result<(), String> {
     println!("----------------------------------------------------");
     println!("| {}", header);
     println!("----------------------------------------------------");
+    let line_pad = 2;
+
     if arg == "all" || arg == "" {
         lines
             .enumerate()
-            .for_each(|(i, line)| println!("| {} | {}", i + 1, line));
+            .for_each(|(i, line)| println!("| {:0>line_pad$} | {}", i + 1, line));
     } else if arg.chars().all(|char| char.is_digit(10)) {
         let line_num: usize = arg
             .parse()
@@ -320,7 +324,7 @@ fn list(arg: Option<&str>, header: Option<String>) -> Result<(), String> {
         lines
             .enumerate()
             .filter(|(i, _)| i + 1 == line_num)
-            .for_each(|(i, line)| println!("| {} | {}", i + 1, line));
+            .for_each(|(i, line)| println!("| {:0>line_pad$} | {}", i + 1, line));
     } else if arg.is_digit_range() {
         let parts: Vec<&str> = arg.split('-').collect();
         let start = parts[0].parse::<usize>().unwrap();
@@ -345,7 +349,7 @@ fn list(arg: Option<&str>, header: Option<String>) -> Result<(), String> {
         lines
             .enumerate()
             .filter(|(i, _)| i + 1 >= start && i + 1 <= end)
-            .for_each(|(i, line)| println!("| {} | {}", i + 1, line));
+            .for_each(|(i, line)| println!("| {:0>line_pad$} | {}", i + 1, line));
     } else {
         let pattern = &arg.to_lowercase();
 
@@ -355,7 +359,7 @@ fn list(arg: Option<&str>, header: Option<String>) -> Result<(), String> {
                 line.to_lowercase().contains(pattern) || line.to_lowercase().contains(pattern)
             })
             .for_each(|(i, line)| {
-                println!("| {} | {}", i + 1, line);
+                println!("| {:0>line_pad$} | {}", i + 1, line);
             })
     }
 
