@@ -133,16 +133,27 @@ fn add(dir: Option<&str>) -> Result<(), String> {
         .open(&file_path)
         .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
 
+    let mut collision_msg: String = "".to_string();
     if BufReader::new(&file)
         .lines()
         .filter_map(|line| line.ok())
-        .any(|line| line.trim().eq_ignore_ascii_case(trimmed_path))
+        .any(|line| {
+            let line_lowercase = line.trim().to_lowercase();
+            let trimmed_path_lowercase = trimmed_path.to_lowercase();
+
+            if line_lowercase.eq_ignore_ascii_case(&trimmed_path_lowercase) {
+                collision_msg = format!("collision: \"{}\" already exists", trimmed_path);
+            } else if trimmed_path_lowercase.starts_with(&line_lowercase) {
+                collision_msg = format!(
+                    "collision: \"{}\" is a sub dir of \"{}\"",
+                    trimmed_path, line
+                )
+            }
+
+            true
+        })
     {
-        return Err(format!(
-            "\"{}\" already exists in \"{}\"",
-            trimmed_path,
-            file_path.display()
-        ));
+        return Err(collision_msg);
     }
 
     if let Err(e) = writeln!(file, "{}", trimmed_path) {
