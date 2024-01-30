@@ -17,7 +17,7 @@ fn main() {
     if raw_args.len() < 2 {
         match run() {
             Ok(path) => println!("{}", path),
-            Err(e) => eprintln!("{}", e),
+            Err(e) => logln(LogLevel::Error, e),
         }
         return;
     }
@@ -26,14 +26,17 @@ fn main() {
     match command.as_str() {
         "add" | "remove" | "list" => {}
         _ => {
-            eprintln!("unknown command '{}'", command);
+            logln(LogLevel::Error, format!("unknown command '{}'", command));
             return;
         }
     };
 
     let args = &raw_args[2..];
     if args.len() > 1 {
-        eprintln!("args '{:?}' will be unused", args[1..].to_vec());
+        logln(
+            LogLevel::Warn,
+            format!("args '{:?}' will be unused", args[1..].to_vec()),
+        );
     }
     let arg = match args.is_empty() {
         true => None,
@@ -47,8 +50,8 @@ fn main() {
         _ => Err(format!("unknown command '{}'", command)),
     };
     match res {
-        Ok(_) => println!("done"),
-        Err(e) => eprintln!("{}", e),
+        Ok(_) => logln(LogLevel::Info, "done".to_string()),
+        Err(e) => logln(LogLevel::Error, e),
     }
 }
 
@@ -143,16 +146,22 @@ fn add(dir: Option<&str>) -> Result<(), String> {
 
             if line_lowercase.eq_ignore_ascii_case(&trimmed_path_lowercase) {
                 collision_msg = format!("collision: \"{}\" already exists", trimmed_path);
+                true
+
             } else if trimmed_path_lowercase.starts_with(&line_lowercase) {
                 collision_msg = format!(
                     "collision: \"{}\" is a sub dir of \"{}\"\ngit repos will already be searched for in \"{}\" so adding \"{}\" is redundant",
                     trimmed_path, line, line, trimmed_path
-                )
+                );
+                true
+
+            } else {
+                false
             }
 
-            true
         })
     {
+        println!("collision: {}", collision_msg);
         return Err(collision_msg);
     }
 
