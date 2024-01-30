@@ -32,11 +32,6 @@ impl StrExt for str {
             return false;
         }
 
-        let start = start.unwrap();
-        if start < 1 {
-            return false;
-        }
-
-        return start < end.unwrap();
+        return true;
     }
 }
