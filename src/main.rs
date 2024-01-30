@@ -1,6 +1,6 @@
 // standard library
 use std::fs::{remove_file, rename, OpenOptions};
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufReader, BufWriter, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -32,20 +32,18 @@ fn main() {
     };
 
     let args = &raw_args[2..];
-    if args.is_empty() {
-        eprintln!("no args given for '{}'", command);
-        return;
-    }
-
     if args.len() > 1 {
         eprintln!("args '{:?}' will be unused", args[1..].to_vec());
     }
+    let arg = match args.is_empty() {
+        true => None,
+        false => Some(args[0].as_str()),
+    };
 
-    let arg = &args[0];
     let res = match command.as_str() {
         "add" => add(arg),
         "remove" => remove(arg),
-        "list" => list(arg),
+        "list" => list(arg, None),
         _ => Err(format!("unknown command '{}'", command)),
     };
     match res {
@@ -99,7 +97,13 @@ fn run() -> Result<String, String> {
     return Ok(selected_path);
 }
 
-fn add(dir: &str) -> Result<(), String> {
+fn add(dir: Option<&str>) -> Result<(), String> {
+    // before
+    list(Some("all"), Some("dirs.txt: before add".to_string()))?;
+
+    // need arg
+    let dir = dir.ok_or(format!("missing arg for 'add'"))?;
+
     let abs_path = Path::new(&dir)
         .canonicalize()
         .map_err(|e| format!("Failed to canonicalize path: {}", e))?
@@ -145,14 +149,21 @@ fn add(dir: &str) -> Result<(), String> {
         return Err(format!("Failed to write to file: {}", e));
     }
 
-    println!("{} added to dirs.txt", trimmed_path);
+    // list updated dir
+    list(Some("all"), Some(format!("added: {}", trimmed_path)))?;
     Ok(())
 }
 
-fn remove(arg: &str) -> Result<(), String> {
+fn remove(arg: Option<&str>) -> Result<(), String> {
+    // before
+    list(Some("all"), Some("dirs.txt: before remove".to_string()))?;
+
+    // need arg
+    let arg = arg.ok_or(format!("missing arg for 'remove'"))?;
+
     // open files and initialze readers, writers
     let file_path = Path::new("dirs.txt");
-    let file = OpenOptions::new()
+    let mut file = OpenOptions::new()
         .read(true)
         .open(&file_path)
         .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
@@ -164,12 +175,24 @@ fn remove(arg: &str) -> Result<(), String> {
         .open(&temp_file_path)
         .map_err(|e| format!("Failed to create \"temp_dirs.txt\": {}", e))?;
     let mut writer = BufWriter::new(&temp_file);
+    let line_count = BufReader::new(&file)
+        .lines()
+        .filter_map(|line| line.ok())
+        .count();
+    _ = file.seek(std::io::SeekFrom::Start(0));
     let lines = BufReader::new(&file).lines().filter_map(|line| line.ok());
 
+    let mut header_arg = "".to_string();
     if arg.chars().all(|char| char.is_digit(10)) {
         let line_num: usize = arg
             .parse()
             .map_err(|e| format!("Unexpected error, unable to parse {} to int: {}", arg, e))?;
+
+        if line_num > line_count {
+            return Err(format!("max is {}; got {}", line_count, line_num));
+        } else if line_num < 1 {
+            return Err(format!("min is 1; got {}", line_num));
+        }
 
         lines
             .enumerate()
@@ -178,10 +201,28 @@ fn remove(arg: &str) -> Result<(), String> {
                 writeln!(writer, "{}", line)
                     .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
             })?;
+
+        header_arg = format!("line {}", line_num);
     } else if arg.is_digit_range() {
         let parts: Vec<&str> = arg.split('-').collect();
         let start = parts[0].parse::<usize>().unwrap();
         let end = parts[1].parse::<usize>().unwrap();
+
+        if start < 1 {
+            return Err(format!("min is 1; got starting range {}", start));
+        } else if end > line_count {
+            return Err(format!("max is {}; got ending range {}", line_count, end));
+        } else if start > end {
+            return Err(format!(
+                "starting range {} is greater than ending range {}",
+                start, end
+            ));
+        } else if start == end {
+            return Err(format!(
+                "starting range {} is equal to ending range {}\nIf you only want one line, just specify the line number",
+                start, end
+            ));
+        }
 
         lines
             .enumerate()
@@ -190,6 +231,8 @@ fn remove(arg: &str) -> Result<(), String> {
                 writeln!(writer, "{}", line)
                     .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
             })?;
+
+        header_arg = format!("lines {}-{}", start, end);
     } else {
         let abs_path = Path::new(&arg)
             .canonicalize()
@@ -205,6 +248,8 @@ fn remove(arg: &str) -> Result<(), String> {
                 writeln!(writer, "{}", line)
                     .map_err(|e| format!("Failed to write \"{}\" to temp_dirs.txt: {}", line, e))
             })?;
+
+        header_arg = format!("\"{}\"", trimmed_path);
     }
 
     // flush and rename
@@ -216,10 +261,84 @@ fn remove(arg: &str) -> Result<(), String> {
     rename(&temp_file_path, &file_path)
         .map_err(|e| format!("failed to rename \"temp_dirs.txt\" to \"dirs.txt\": {}", e))?;
 
+    // list updated dir
+    list(Some("all"), Some(format!("removed: {}", header_arg)))?;
     Ok(())
 }
 
-fn list(args: &str) -> Result<(), String> {
-    println!("ran list with {:?}", args);
-    return Ok(());
+fn list(arg: Option<&str>, header: Option<String>) -> Result<(), String> {
+    // default arg
+    let arg = arg.unwrap_or("all");
+
+    // open files and initialze readers, writers
+    let file_path = Path::new("dirs.txt");
+    let mut file = OpenOptions::new()
+        .read(true)
+        .open(&file_path)
+        .map_err(|e| format!("Failed to open file \"dirs.txt\": {}", e))?;
+    let line_count = BufReader::new(&file)
+        .lines()
+        .filter_map(|line| line.ok())
+        .count();
+    // reset cursor
+    _ = file.seek(std::io::SeekFrom::Start(0));
+    let lines = BufReader::new(&file).lines().filter_map(|line| line.ok());
+
+    let header = header.unwrap_or(format!("dirs.txt: length of {}", line_count));
+    println!("----------------------------------------------------");
+    println!("| {}", header);
+    println!("----------------------------------------------------");
+    if arg == "all" || arg == "" {
+        lines
+            .enumerate()
+            .for_each(|(i, line)| println!("| {} | {}", i + 1, line));
+    } else if arg.chars().all(|char| char.is_digit(10)) {
+        let line_num: usize = arg
+            .parse()
+            .map_err(|e| format!("Unexpected error, unable to parse {} to int: {}", arg, e))?;
+
+        lines
+            .enumerate()
+            .filter(|(i, _)| i + 1 == line_num)
+            .for_each(|(i, line)| println!("| {} | {}", i + 1, line));
+    } else if arg.is_digit_range() {
+        let parts: Vec<&str> = arg.split('-').collect();
+        let start = parts[0].parse::<usize>().unwrap();
+        let end = parts[1].parse::<usize>().unwrap();
+
+        if start < 1 {
+            return Err(format!("min is 1; got starting range {}", start));
+        } else if end > line_count {
+            return Err(format!("max is {}; got ending range {}", line_count, end));
+        } else if start > end {
+            return Err(format!(
+                "starting range {} is greater than ending range {}",
+                start, end
+            ));
+        } else if start == end {
+            return Err(format!(
+                "starting range {} is equal to ending range {}\nIf you only want one line, just specify the line number",
+                start, end
+            ));
+        }
+
+        lines
+            .enumerate()
+            .filter(|(i, _)| i + 1 >= start && i + 1 <= end)
+            .for_each(|(i, line)| println!("| {} | {}", i + 1, line));
+    } else {
+        let pattern = &arg.to_lowercase();
+
+        lines
+            .enumerate()
+            .filter(|(_, line)| {
+                line.to_lowercase().contains(pattern) || line.to_lowercase().contains(pattern)
+            })
+            .for_each(|(i, line)| {
+                println!("| {} | {}", i + 1, line);
+            })
+    }
+
+    println!("----------------------------------------------------");
+    Ok(())
 }
