@@ -44,8 +44,8 @@ pub enum LogLevel {
 
 pub fn logln(level: LogLevel, msg: String) {
     match level {
-        LogLevel::Info => println!("[INFO]: {}", msg),
-        LogLevel::Error => println!("\x1b[31m[ERROR]\x1b[0m: {}", msg),
-        LogLevel::Warn => println!("\x1b[33m[WARN]\x1b[0m: {}", msg),
+        LogLevel::Info => println!("[INFO] {}", msg),
+        LogLevel::Error => println!("\x1b[31m[ERROR]\x1b[0m {}", msg),
+        LogLevel::Warn => println!("\x1b[33m[WARN]\x1b[0m {}", msg),
     };
 }

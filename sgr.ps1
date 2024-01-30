@@ -20,10 +20,14 @@ if ($args.Count -eq 0)
         }
     }
 
-    if ($selectedPath -ne "")
+    $header = ($selectedPath -split " ")[0]
+    if ($header -ne "`e[33m[WARN]`e[0m")
     {
         Set-Location -Path $selectedPath
         "Changed Directory to ""$selectedPath"""
+    } else
+    {
+        Write-Host $selectedPath
     }
 
 } else
