@@ -6,7 +6,8 @@ if not exist "%~dp0dirs.txt" (
 
 if "%~1"=="" (
     goto select_repos
-) else (
+)
+if not "%~1"=="" (
     cargo run %*
     goto end
 )
