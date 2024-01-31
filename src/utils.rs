@@ -7,7 +7,13 @@ pub trait PathExt {
 impl PathExt for Path {
     fn must_be_dir(&self) -> Result<PathBuf, String> {
         if !self.is_dir() {
-            return Err(format!("\"{}\" is not a directory", self.display()));
+            let abs_path = self.display().to_string();
+            let trimmed_path = abs_path.strip_prefix(r#"\\?\"#).unwrap_or(&abs_path);
+
+            return Err(format_log(
+                LogLevel::Error,
+                format!("\"{}\" is not a directory", trimmed_path),
+            ));
         }
         Ok(self.to_path_buf())
     }
@@ -43,9 +49,29 @@ pub enum LogLevel {
 }
 
 pub fn logln(level: LogLevel, msg: String) {
+    println!("{} {}", log_header(level), msg);
+}
+
+pub fn format_log(level: LogLevel, msg: String) -> String {
+    format!("{} {}", log_header(level), msg)
+}
+
+pub fn log_header(level: LogLevel) -> &'static str {
     match level {
-        LogLevel::Info => println!("[INFO] {}", msg),
-        LogLevel::Error => println!("\x1b[31m[ERROR]\x1b[0m {}", msg),
-        LogLevel::Warn => println!("\x1b[33m[WARN]\x1b[0m {}", msg),
-    };
+        LogLevel::Info => info_header(),
+        LogLevel::Error => error_header(),
+        LogLevel::Warn => warn_header(),
+    }
+}
+
+fn info_header() -> &'static str {
+    "[INFO]"
+}
+
+fn error_header() -> &'static str {
+    "\x1b[31m[ERROR]\x1b[0m"
+}
+
+fn warn_header() -> &'static str {
+    "\x1b[33m[WARN]\x1b[0m"
 }
