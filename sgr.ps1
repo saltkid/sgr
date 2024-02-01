@@ -21,7 +21,7 @@ if ($args.Count -eq 0)
     }
 
     $header = ($selectedPath -split " ")[0]
-    if ($header -ne "`e[33m[WARN]`e[0m")
+    if ($header -ne "`e[33m[WARN]`e[0m" -and $header -ne "`e[31m[ERROR]`e[0m")
     {
         Set-Location -Path $selectedPath
         "Changed Directory to ""$selectedPath"""
