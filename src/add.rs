@@ -62,18 +62,30 @@ pub fn execute(dir: Option<&str>) -> Result<(), String> {
             let line_lowercase = line.trim().to_lowercase();
             let trimmed_path_lowercase = trimmed_path.to_lowercase();
 
+            // already exists
             if line_lowercase.eq_ignore_ascii_case(&trimmed_path_lowercase) {
                 collision_msg = format_log(
                     LogLevel::Error,
                     format!("collision: \"{}\" already exists", trimmed_path),
                 );
                 true
+            // to be added is a subdir of existing
             } else if trimmed_path_lowercase.starts_with(&line_lowercase) {
                 collision_msg = format_log(
                     LogLevel::Error,
                     format!(
                         "collision: \"{}\" is a sub dir of \"{}\"",
                         trimmed_path, line
+                    ),
+                );
+                true
+            // existing is a subdir of to be added
+            } else if line_lowercase.starts_with(&trimmed_path_lowercase) {
+                collision_msg = format_log(
+                    LogLevel::Error,
+                    format!(
+                        "collision: \"{}\" is a sub dir of \"{}\"",
+                        line, trimmed_path
                     ),
                 );
                 true
