@@ -18,7 +18,16 @@ pub fn execute(arg: Option<&str>) -> Result<(), String> {
     ))?;
 
     // open files and initialze readers, writers
-    let file_path = Path::new("dirs.txt");
+    let file_path = std::env::current_exe()
+        .map_err(|e| {
+            format_log(
+                LogLevel::Error,
+                format!("Failed to get sgr.exe path: {}", e),
+            )
+        })?
+        .parent()
+        .ok_or("Failed to get parent directory of sgr.exe")?
+        .join("dirs.txt");
     let mut file = OpenOptions::new()
         .read(true)
         .open(&file_path)
@@ -29,7 +38,16 @@ pub fn execute(arg: Option<&str>) -> Result<(), String> {
             )
         })?;
 
-    let temp_file_path = Path::new("temp_dirs.txt");
+    let temp_file_path = std::env::current_exe()
+        .map_err(|e| {
+            format_log(
+                LogLevel::Error,
+                format!("Failed to get sgr.exe path: {}", e),
+            )
+        })?
+        .parent()
+        .ok_or("Failed to get parent directory of sgr.exe")?
+        .join("temp_dirs.txt");
     let temp_file = OpenOptions::new()
         .create(true)
         .write(true)
