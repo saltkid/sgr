@@ -98,16 +98,17 @@ pub fn execute(dir: Option<&str>) -> Result<(), String> {
 }
 
 pub fn help(verbose: bool) {
-    println!(
-        "{}{}\n",
-        "add"
+    let title = match verbose {
+        true => "add"
             .to_string()
             .pad_right(15)
             .fill_left(2)
             .bold()
             .underline(),
-        "adds a directory to dirs.txt"
-    );
+        false => "add".to_string().pad_right(15).fill_left(2).bold(),
+    };
+
+    println!("{}{}\n", title, "adds a directory to dirs.txt");
     if verbose {
         println!(
             "{}{}",
@@ -116,7 +117,7 @@ pub fn help(verbose: bool) {
         );
         println!(
             "\n  {}{}",
-            "Usage".to_string().pad_right(15).bold().underline(),
+            "Usage:".to_string().pad_right(15).bold().underline(),
             "sgr add path/to/dir".to_string()
         );
 
