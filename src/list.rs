@@ -101,16 +101,17 @@ pub fn execute(arg: Option<&str>, header: Option<String>) -> Result<(), String> 
 }
 
 pub fn help(verbose: bool) {
-    println!(
-        "{}{}\n",
-        "list"
+    let title = match verbose {
+        true => "list"
             .to_string()
             .pad_right(15)
             .fill_left(2)
             .bold()
             .underline(),
-        "prints all directories in dirs.txt."
-    );
+        false => "list".to_string().pad_right(15).fill_left(2).bold(),
+    };
+
+    println!("{}{}\n", title, "prints all directories in dirs.txt.");
     if verbose {
         println!(
             "{}{}",

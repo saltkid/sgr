@@ -174,15 +174,19 @@ pub fn execute(arg: Option<&str>) -> Result<(), String> {
 }
 
 pub fn help(verbose: bool) {
-    println!(
-        "{}{}",
-        "remove"
+    let title = match verbose {
+        true => "remove"
             .to_string()
             .pad_right(15)
             .fill_left(2)
             .bold()
             .underline(),
-        "removes a directory from dirs.txt by specifying"
+        false => "remove".to_string().pad_right(15).fill_left(2).bold(),
+    };
+
+    println!(
+        "{}{}",
+        title, "removes a directory from dirs.txt by specifying"
     );
     println!(
         "{}{}\n",
