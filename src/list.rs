@@ -1,7 +1,6 @@
 // std lib
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Seek};
-use std::path::Path;
 
 // own
 use crate::utils::{format_log, LogLevel, StrExt, StringExt};
@@ -11,7 +10,16 @@ pub fn execute(arg: Option<&str>, header: Option<String>) -> Result<(), String> 
     let arg = arg.unwrap_or("all");
 
     // open files and initialze readers, writers
-    let file_path = Path::new("dirs.txt");
+    let file_path = std::env::current_exe()
+        .map_err(|e| {
+            format_log(
+                LogLevel::Error,
+                format!("Failed to get sgr.exe path: {}", e),
+            )
+        })?
+        .parent()
+        .ok_or("Failed to get parent directory of sgr.exe")?
+        .join("dirs.txt");
     let mut file = OpenOptions::new()
         .read(true)
         .open(&file_path)

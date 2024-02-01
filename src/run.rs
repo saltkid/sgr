@@ -11,13 +11,24 @@ use walkdir::WalkDir;
 use crate::utils::{format_log, LogLevel};
 
 pub fn execute() -> Result<String, String> {
-    let file = OpenOptions::new()
-        .read(true)
-        .open("dirs.txt")
+    let dirs_txt_path = std::env::current_exe()
         .map_err(|e| {
             format_log(
                 LogLevel::Error,
-                format!("Failed to open file \"dirs.txt\": {}", e),
+                format!("Failed to get sgr.exe path: {}", e),
+            )
+        })?
+        .parent()
+        .ok_or("Failed to get parent directory of sgr.exe")?
+        .join("dirs.txt");
+
+    let file = OpenOptions::new()
+        .read(true)
+        .open(&dirs_txt_path)
+        .map_err(|e| {
+            format_log(
+                LogLevel::Error,
+                format!("Failed to open file \"{:?}\": {}", dirs_txt_path, e),
             )
         })?;
 

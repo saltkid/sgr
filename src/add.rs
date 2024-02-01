@@ -15,7 +15,10 @@ pub fn execute(dir: Option<&str>) -> Result<(), String> {
     list::execute(Some("all"), Some("dirs.txt: before add".to_string()))?;
 
     // need arg
-    let dir = dir.ok_or(format!("missing arg for 'add'"))?;
+    let dir = dir.ok_or(format_log(
+        LogLevel::Error,
+        "missing arg for 'add'".to_string(),
+    ))?;
 
     let abs_path = Path::new(&dir)
         .canonicalize()
@@ -42,11 +45,22 @@ pub fn execute(dir: Option<&str>) -> Result<(), String> {
             format!("No git repos found in directory '{}'", trimmed_path),
         ))?;
 
+    let dirs_txt_path = std::env::current_exe()
+        .map_err(|e| {
+            format_log(
+                LogLevel::Error,
+                format!("Failed to get sgr.exe path: {}", e),
+            )
+        })?
+        .parent()
+        .ok_or("Failed to get parent directory of sgr.exe")?
+        .join("dirs.txt");
+
     let mut file = OpenOptions::new()
         .read(true)
         .write(true)
         .append(true)
-        .open("dirs.txt")
+        .open(&dirs_txt_path)
         .map_err(|e| {
             format_log(
                 LogLevel::Error,
