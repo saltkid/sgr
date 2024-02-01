@@ -69,7 +69,7 @@ pub enum CMD {
 impl CMD {
     fn help(&self, verbose: bool) {
         match self {
-            CMD::Run => run::help(verbose),
+            CMD::Run => {} // impossible
             CMD::Add => add::help(verbose),
             CMD::Remove => remove::help(verbose),
             CMD::List => list::help(verbose),

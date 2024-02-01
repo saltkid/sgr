@@ -1,4 +1,4 @@
-use crate::{to_command, version};
+use crate::{add, list, remove, to_command, version};
 
 pub fn execute(arg: Option<&str>) -> Result<(), String> {
     let command = match arg {
@@ -19,6 +19,9 @@ pub fn execute(arg: Option<&str>) -> Result<(), String> {
             version::execute();
             println!("Usage: sgr <optional_command> <optional_arg>");
             println!("Optional Commands: ");
+            add::help(false);
+            remove::help(false);
+            list::help(false);
         }
         Some(command) => {
             // H = cursor to top left, 2J = clear screen

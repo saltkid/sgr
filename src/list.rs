@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader, Seek};
 use std::path::Path;
 
 // own
-use crate::utils::{format_log, LogLevel, StrExt};
+use crate::utils::{format_log, LogLevel, StrExt, StringExt};
 
 pub fn execute(arg: Option<&str>, header: Option<String>) -> Result<(), String> {
     // default arg
@@ -101,5 +101,46 @@ pub fn execute(arg: Option<&str>, header: Option<String>) -> Result<(), String> 
 }
 
 pub fn help(verbose: bool) {
-    todo!()
+    println!(
+        "{}{}\n",
+        "list"
+            .to_string()
+            .pad_right(15)
+            .fill_left(2)
+            .bold()
+            .underline(),
+        "prints all directories in dirs.txt."
+    );
+    if verbose {
+        println!(
+            "{}{}",
+            "".to_string().pad_right(15).fill_left(2),
+            "User can specify which directory or directories to print by"
+        );
+        println!(
+            "{}{}\n",
+            "".to_string().pad_right(15).fill_left(2),
+            "specifying a line number or a range of line numbers respectively"
+        );
+        println!(
+            "{}{}",
+            "".to_string().pad_right(15).fill_left(2),
+            "User can filter directories by specific pattern too"
+        );
+        println!(
+            "{}{}",
+            "".to_string().pad_right(15).fill_left(2),
+            "Example: \"sgr list rust\" will print all directories with \"rust\" in them"
+        );
+        println!("\n{}", "Usage:".to_string().bold().underline().fill_left(2));
+        println!("{}", "sgr list 1".to_string().fill_left(17));
+        println!("{}", "sgr list 1-3".to_string().fill_left(17));
+        println!("{}", "sgr list path/pattern".to_string().fill_left(17));
+
+        println!("\n{}:", "Notes".to_string().bold().underline().fill_left(2));
+        println!("  1. Line number bounds are checked");
+        println!("  2. Line range is inclusive");
+        println!("  3. Pattern is case insensitive but exact match is required");
+        println!("     if none was found, nothing will be printed");
+    }
 }
