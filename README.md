@@ -1,7 +1,7 @@
 # Table of Contents
 - [sgr](#sgr)
 - [Dependencies](#dependencies)
-    - [Recommended Shell](#recommended-shell)
+    - [Compatible shells](#compatible-shells)
 - [Getting Started](#getting-started)
     - [Installation](#installation)
 - [Basic Usage](#basic-usage)
@@ -13,8 +13,8 @@
 ---
 # sgr
 **sgr** is a wrapper around [fzf](https://github.com/junegunn/fzf) whose search list only includes local git repos in selected directories.
-- *selected directories* are defined in `dirs.txt` in the same directory as **sgr**
-- *selected directories* **contain** git repos **AND** can be git repos themselves
+- *selected directories* are defined in `dirs.txt` in the same directory as **sgr** (auto created)
+- *selected directories* can either **contain** git repos **OR** can be git repos themselves
 
 # Dependencies
 1. [fzf](https://github.com/junegunn/fzf)
@@ -25,13 +25,13 @@ choco install fzf
 ```
 ## Compatible shells
 In order to change directories, **sgr** needs a script native to your shell to be written for it.
-1. [pwsh](https://github.com/PowerShell/PowerShell) and [powershell](https://github.com/PowerShell/PowerShell)
+1. [cmd](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmd)
+2. [pwsh](https://github.com/PowerShell/PowerShell) or [powershell](https://github.com/PowerShell/PowerShell)
 
 *You can install pwsh with [chocolatey](https://chocolatey.org/)*
 ```
 choco install pwsh
 ```
-2. [cmd](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmd)
 
 ---
 # Getting Started
@@ -47,7 +47,7 @@ choco install pwsh
 3. Put the files into one directory you have access to
 
 **Optional**
-- add `sgr` to your PATH
+- add the directory containing the three `sgr` files to your PATH
 - create `dirs.txt` in the same directory as `sgr` and put directories containing git repos.
     - separate the directories with newlines. example:
     ```
@@ -85,6 +85,7 @@ choco install pwsh
         1. you cannot add a path that is already in `dirs.txt`
         2. you cannot add a path that is a subdir of another path already in `dirs.txt`
             - this is because **sgr** will search for git repos under directories in `dirs.txt` so having a subdirectory of another directory will cause double the work for the same result
+        3. similar to 2, you cannot add a path that is a parent of another path already in `dirs.txt`
 2. `remove`
     - **args**: `path/to/dir`, `<int>`, `<int_x>-<int_y>`
     - removes `path/to/dir` from `dirs.txt` if it's in `dirs.txt`
@@ -97,11 +98,12 @@ choco install pwsh
         3. you cannot remove by range where the range is out of range
         3. you cannot remove by range where the starting range is greater than or equal to the ending range (`1-1`, `3-3`, `4-2`)
 3. `list`
-    - **args**: none, `<int>`, `<int_x>-<int_y>`
+    - **args**: none, `<int>`, `<int_x>-<int_y>`, `path/pattern`
     - lists `dirs.txt` if no args are given
     - if `<int>` is provided, it will list the dir at line `<int>` in `dirs.txt`
     - if `<int_x>-<int_y>` is provided, it will list the dirs between lines `<x>` and `<y>` (inclusive)
-
+    - if `path/pattern` is provided, it will list the dirs that match `path/pattern`
+        - case insensitive but must be exact match
     - **validations**:
         1. you cannot list by index where the index is out of range
         2. you cannot list by range where the range is out of range
@@ -110,8 +112,9 @@ choco install pwsh
 ### other commands:
 
 4. `help`
-    - **args**: none
+    - **args**: none or another command
     - prints help message along with the list of commands
+    - if a command is specified, it will print the verbose help message of that command
 5. `version`
     - **args**: none
     - prints version
@@ -145,7 +148,7 @@ Below will open a new tab with the [fzf](https://github.com/junegunn/fzf) prompt
 ```
 
 *Notes:* 
-- Just be wary that the first shortcut (sending input) will literally send "sgr" and press enter, even when you're in another TUI. This is a limitation of *Windows Terminal* where you can't execute scripts with a shortcut in the same tab. The next tab variant works as expected though
+- Just be wary that the first shortcut (sending input) will literally send "sgr" and press enter, even when you're in another TUI. This is a limitation of *Windows Terminal* where you can't execute scripts with a shortcut in the same tab. The next tab variant works as expected though and does not paste text
 
 - If you want to use `pwsh` in the new tab, just replace `cmd.exe /k` with `C:\\Program Files\\PowerShell\\7\\pwsh.exe -noexit -c`
     - yes, it has to be full path, even if `pwsh` is in your PATH
@@ -185,4 +188,5 @@ Notice that we just added `&& nvim .` after `sgr` on both shortcuts. That's it. 
 - [ThePrimeagen](https://github.com/ThePrimeagen) for the idea (specifically, his [tmux-sessionizer](https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer), the quick switching part)
 - [fzf](https://github.com/junegunn/fzf)
 - [chocolatey](https://chocolatey.org/)
-
+- [cmd](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmd)
+- [pwsh](https://github.com/PowerShell/PowerShell)
