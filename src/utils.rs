@@ -138,7 +138,7 @@ impl StringExt for String {
 }
 
 pub enum LogLevel {
-    Info,
+    _Info,
     Error,
     Warn,
 }
@@ -153,7 +153,7 @@ pub fn format_log(level: LogLevel, msg: String) -> String {
 
 pub fn log_header(level: LogLevel) -> &'static str {
     match level {
-        LogLevel::Info => info_header(),
+        LogLevel::_Info => info_header(),
         LogLevel::Error => error_header(),
         LogLevel::Warn => warn_header(),
     }
