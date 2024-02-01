@@ -12,7 +12,7 @@
 
 ---
 # sgr (Search Git Repos)
-**sgr** *(sugar?)* is a wrapper around [fzf](https://github.com/junegunn/fzf) whose search list only includes local git repos in selected directories.
+**sgr** *(sugar)* is a wrapper around [fzf](https://github.com/junegunn/fzf) whose search list only includes local git repos in selected directories.
 - *selected directories* are defined in `dirs.txt` in the same directory as **sgr** (auto created)
 - *selected directories* can either **contain** git repos **OR** can be git repos themselves
 
