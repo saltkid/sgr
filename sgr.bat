@@ -25,7 +25,12 @@ if not "%~1"=="" (
 
     rem select only the header (should be either [WARN] or a path)
     for /f "tokens=1 delims= " %%a in ("%selected_path%") do (
-        if %%a==%ESC%[33m[WARN]%ESC%[0m (
+        if "%%a"=="%ESC%[31m[ERROR]%ESC%[0m" (
+            rem echo error message
+            echo %selected_path%
+            goto end
+        )
+        if "%%a"=="%ESC%[33m[WARN]%ESC%[0m" (
             rem echo warning message
             echo %selected_path%
             goto end
