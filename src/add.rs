@@ -8,7 +8,7 @@ use walkdir::WalkDir;
 
 //own
 use crate::list;
-use crate::utils::{format_log, LogLevel, PathExt};
+use crate::utils::{format_log, LogLevel, PathExt, StringExt};
 
 pub fn execute(dir: Option<&str>) -> Result<(), String> {
     // before
@@ -98,19 +98,34 @@ pub fn execute(dir: Option<&str>) -> Result<(), String> {
 }
 
 pub fn help(verbose: bool) {
-    println!("\x1B[4m\x1B[1madd\x1B[0m    adds a directory to dirs.txt");
     println!(
-        "       The directory can either be a git repo or a directory that contains git repos"
+        "{}{}\n",
+        "add"
+            .to_string()
+            .pad_right(15)
+            .fill_left(2)
+            .bold()
+            .underline(),
+        "adds a directory to dirs.txt"
     );
-    println!("\n\x1B[4m\x1B[1mUsage\x1B[0m: sgr add <path/to/dir>");
-
     if verbose {
-        println!("\n\x1B[4m\x1B[1mNotes\x1B[0m:");
-        println!("  1. If the directory to be added is not a git repo, it must have subdirs that are git repos (it will be checked)\n");
+        println!(
+            "{}{}",
+            "".to_string().pad_right(15).fill_left(2),
+            "The directory can either be a git repo or a directory that contains git repos"
+        );
+        println!(
+            "\n  {}{}",
+            "Usage".to_string().pad_right(15).bold().underline(),
+            "sgr add path/to/dir".to_string()
+        );
+
+        println!("\n{}:", "Notes".to_string().fill_left(2).bold().underline());
+        println!("  1. If the directory to be added is not a git repo, it must have subdirs that are git repos (it will be checked)");
         println!("  2. The directory to be added must NOT be a parent or a subdir of another directory in dirs.txt");
         println!("     This is because sgr already searches recursively for git repos for every directory in dirs.txt");
         println!(
-            "     That means double the work for the same result so \"add\" just disallows that\n"
+            "     That means double the work for the same result so \"add\" just disallows that"
         );
         println!("  3. The directory to be added must already exist");
         println!("     sgr will not create directories for you");

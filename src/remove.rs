@@ -5,7 +5,7 @@ use std::path::Path;
 
 // own
 use crate::list;
-use crate::utils::{format_log, LogLevel, PathExt, StrExt};
+use crate::utils::{format_log, LogLevel, PathExt, StrExt, StringExt};
 
 pub fn execute(arg: Option<&str>) -> Result<(), String> {
     // before
@@ -174,5 +174,35 @@ pub fn execute(arg: Option<&str>) -> Result<(), String> {
 }
 
 pub fn help(verbose: bool) {
-    todo!()
+    println!(
+        "{}{}",
+        "remove"
+            .to_string()
+            .pad_right(15)
+            .fill_left(2)
+            .bold()
+            .underline(),
+        "removes a directory from dirs.txt by specifying"
+    );
+    println!(
+        "{}{}\n",
+        "".to_string().pad_right(15).fill_left(2),
+        "a path, a line number or a range of line numbers"
+    );
+    if verbose {
+        println!(
+            "{}{}",
+            "".to_string().pad_right(15).fill_left(2),
+            "The directory must exist in dirs.txt if specified by path"
+        );
+        println!("\n{}", "Usage:".to_string().bold().underline().fill_left(2));
+        println!("{}", "sgr remove path/to/dir".to_string().fill_left(17));
+        println!("{}", "sgr remove 1".to_string().fill_left(17));
+        println!("{}", "sgr remove 1-3".to_string().fill_left(17));
+
+        println!("\n{}:", "Notes".to_string().bold().underline().fill_left(2));
+        println!("  1. The directory must exist in dirs.txt if specified by path");
+        println!("  2. Line number bounds are checked");
+        println!("  3. Line range is inclusive");
+    }
 }

@@ -66,7 +66,3 @@ pub fn execute() -> Result<String, String> {
     let selected_path = String::from_utf8_lossy(&output.stdout).to_string();
     return Ok(selected_path);
 }
-
-pub fn help(verbose: bool) {
-    todo!()
-}
