@@ -38,7 +38,7 @@ pub fn execute(arg: Option<&str>, header: Option<String>) -> Result<(), String> 
     _ = file.seek(std::io::SeekFrom::Start(0));
     let lines = BufReader::new(&file).lines().filter_map(|line| line.ok());
 
-    let header = header.unwrap_or(format!("dirs.txt: length of {}", line_count));
+    let header = header.unwrap_or(format!("({}) {:?}", line_count, file_path));
     println!("----------------------------------------------------");
     println!("| {}", header);
     println!("----------------------------------------------------");

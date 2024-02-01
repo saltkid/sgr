@@ -25,7 +25,7 @@ pub fn execute(dir: Option<&str>) -> Result<(), String> {
         .map_err(|e| {
             format_log(
                 LogLevel::Error,
-                format!("Failed to canonicalize path: {}", e),
+                format!("Failed to canonicalize path {}: {}", &dir, e),
             )
         })?
         .must_be_dir()?
