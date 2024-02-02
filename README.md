@@ -37,39 +37,46 @@ choco install pwsh
 # Getting Started
 ## Installation
 1. Download the latest release of **sgr**
-2. Unzip the file
-    - You should have 3 files
+2. Extract the archive
+    - You should have these files (windows .zip archive in this example)
     ```
-    sgr.exe  <-- the executable to find git repos
-    sgr.bat  <-- the batch script to make sgr work with cmd
-    sgr.ps1  <-- the powershell script to make sgr work with pwsh
+    sgr.bat    <-- the batch script to make sgr work with cmd
+    sgr.ps1    <-- the powershell script to make sgr work with pwsh
+    sugar.exe  <-- the executable to find git repos
     ```
-3. Put the files into one directory you have access to
+3. Put these files into one directory you have access to
+4. Add that directory to your PATH
+    - this is important because the scripts (`.bat` and `.ps1` in this example) assume it can execute the `sugar` executable just by calling it.
 
-**Optional**
-- add the directory containing the three `sgr` files to your PATH
+**Optional**:
 - create `dirs.txt` in the same directory as `sgr` and put directories containing git repos.
     - separate the directories with newlines. example:
     ```
-    %userprofile%\projects
+    C:\Users\<username>\spaces are\okay
+    C:\Users\<username>\path\to\single\git\repo\is\okay
 
-    C:\Users\<username>\spaces and abs paths\are\okay
-
-    %other_env_vars%\are\also\okay
-
-    %userprofile%\path\to\single\git\repo\is\okay
+    %env vars%\are\NOT\okay!! <-- INVALID
     ```
     - if there's no `dirs.txt` in the same directory, `sgr` will create one containing only one line:
+
+    if called in `cmd`:
     ```
     %userprofile%\projects
+    ```
+    if called in `pwsh` or `powershell`:
+    ```
+    $env:userprofile\projects
+    ```
+    These environment variables will be expanded to be absolute paths. Below is the general format:
+    ```
+    <whatever is the env var for user>/projects
     ```
     This means **sgr** will only search for git repos in that directory
 
 ---
 # Basic Usage
 1. Open a terminal and run `path/to/sgr`
-    - if you have `sgr` in your PATH, you can just run `sgr`
-    - both `cmd` and `pwsh` will infer that the `sgr` you are referring to is the script native to it
+    - your shell will infer that the `sgr` you are referring to is the script native to it
         - if you ran `sgr` in `cmd`, it will execute `sgr.bat`
         - if you ran `sgr` in `pwsh`, it will execute `sgr.ps1`
         - etc.
@@ -122,10 +129,9 @@ choco install pwsh
 ---
 # Extras
 ## Calling sgr through a shortcut in Windows Terminal
-1. Add **sgr** to your PATH **OR** just keep in mind its location
-2. Open Windows Terminal and go to settings (`Ctrl+,`)
-3. Open settings.json
-4. Under `"actions"`, there are a list of commands. Add either of these two snippets (or both):
+1. Open Windows Terminal and go to settings (`Ctrl+,`)
+2. Open settings.json
+3. Under `"actions"`, there are a list of commands. Add either of these two snippets (or both):
 
 Below will just insert the string `sgr` to the terminal and press enter when you press `ctrl+f`. This will open up the [fzf](https://github.com/junegunn/fzf) prompt waiting for input.
 ```
@@ -153,11 +159,10 @@ Below will open a new tab with the [fzf](https://github.com/junegunn/fzf) prompt
 - If you want to use `pwsh` in the new tab, just replace `cmd.exe /k` with `C:\\Program Files\\PowerShell\\7\\pwsh.exe -noexit -c`
     - yes, it has to be full path, even if `pwsh` is in your PATH
 - if you wish to use `powershell.exe` instead, just replace `cmd.exe /k` with `powershell.exe -noexit -c`
-- these extras assume you have `sgr` in your PATH. If not, use `"input": "\"path\\to\\sgr\"\u000D"` instead
 - `ctrl+shift+f` is by default bound to the action of *opening the search dialog box* in Windows Terminal. If you want `ctrl+shift+f` for running **sgr** in *new tab*, remap the `"find"` command to something else like `ctrl+alt+f`
 - Windows uses backslashes so those need to be escaped here. Example:
 ```
-"commandline" : "powershell.exe -noexit -c \"C:\\Users\\username\\tools\\sgr.bat\""
+"commandline" : "powershell.exe -noexit -c \"sgr\""
 ```
 
 ## Modify the above two shortcuts to execute something else after **sgr**
