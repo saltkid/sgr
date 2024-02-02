@@ -2,8 +2,7 @@
 - [sgr (Search Git Repos)](#sgr-search-git-repos)
 - [Dependencies](#dependencies)
     - [Compatible shells](#compatible-shells)
-- [Getting Started](#getting-started)
-    - [Installation](#installation)
+- [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Optional Commands](#optional-commands)
 - [Extras](#extras)
@@ -34,8 +33,7 @@ choco install pwsh
 ```
 
 ---
-# Getting Started
-## Installation
+# Installation
 1. Download the [latest release of **sgr**](https://github.com/saltkid/sgr/releases)
 2. Extract the archive
     - You should have these files (windows .7z archive in this example)
