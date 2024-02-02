@@ -36,9 +36,9 @@ choco install pwsh
 ---
 # Getting Started
 ## Installation
-1. Download the latest release of **sgr**
+1. Download the [latest release of **sgr**](https://github.com/saltkid/sgr/releases)
 2. Extract the archive
-    - You should have these files (windows .zip archive in this example)
+    - You should have these files (windows .7z archive in this example)
     ```
     sgr.bat    <-- the batch script to make sgr work with cmd
     sgr.ps1    <-- the powershell script to make sgr work with pwsh
