@@ -19,7 +19,7 @@ if not "%~1"=="" (
 
 :select_repos
     rem select the entire message sent by sgr
-    for /f "tokens=*" %%i in ('cargo run') do (
+    for /f "tokens=*" %%i in ('sugar') do (
         set "selected_path=%%i"
     )
 

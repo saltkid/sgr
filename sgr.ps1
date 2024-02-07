@@ -5,7 +5,7 @@ if (-not (Test-Path -Path "$PSScriptRoot\dirs.txt"))
 
 if ($args.Count -eq 0)
 {
-    $res = & cargo run
+    $res = & sugar
     if ($res.Count -eq 0)
     {
         exit 0
