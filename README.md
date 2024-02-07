@@ -3,6 +3,7 @@
 - [Dependencies](#dependencies)
     - [Compatible shells](#compatible-shells)
 - [Installation](#installation)
+    - [Building from source](#building-from-source)
 - [Basic Usage](#basic-usage)
 - [Optional Commands](#optional-commands)
 - [Extras](#extras)
@@ -70,6 +71,24 @@ choco install pwsh
     <whatever is the env var for user>/projects
     ```
     This means **sgr** will only search for git repos in that directory
+
+## Building from Source
+If you prefer to build it from source:
+1. Clone the repo and cd into it
+```
+git clone https://github.com/saltkid/sgr.git
+cd sgr
+```
+2. Build it
+```
+cargo build --release
+```
+3. Move the `sugar` executable into any directory you have access to
+    - You will add this directory to your PATH later
+        - or you can put it in a directory already in your PATH
+    - the `sugar` executable is in the `./target/release` directory
+4. In the `./scripts` directory, pick the scripts that your shell/s use and move it to the same directory as the `sugar` executable in the previous step
+5. If not already, add the directory that contains the `sugar` executable and the scripts to your PATH
 
 ---
 # Basic Usage
