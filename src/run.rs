@@ -33,7 +33,7 @@ pub fn execute() -> Result<String, String> {
         })?;
 
     let reader = BufReader::new(file);
-    let mut lines = reader
+    let lines = reader
         .lines()
         .filter_map(|line| line.ok())
         .map(|line| PathBuf::from(line));
@@ -45,7 +45,7 @@ pub fn execute() -> Result<String, String> {
         .map_err(|e| format_log(LogLevel::Error, format!("failed to start fzf: {}", e)))?;
 
     if let Some(stdin) = fzf_process.stdin.as_mut() {
-        lines.try_for_each(|path| {
+        lines.for_each(|path| {
             WalkDir::new(&path)
                 .into_iter()
                 .filter_map(|e| e.ok())
@@ -54,13 +54,11 @@ pub fn execute() -> Result<String, String> {
                         && e.path().ends_with(".git")
                         && e.path().join("HEAD").exists()
                 })
-                .try_for_each(|e| {
+                .for_each(|e| {
                     let git_repo = e.path().parent().unwrap_or(e.path());
-                    writeln!(stdin, "{}", git_repo.display()).map_err(|e| {
-                        format_log(LogLevel::Error, format!("Failed to write to stdin: {}", e))
-                    })
+                    writeln!(stdin, "{}", git_repo.display()).unwrap_or(());
                 })
-        })?
+        })
     }
 
     let output = fzf_process
