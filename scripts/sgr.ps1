@@ -32,6 +32,6 @@ if ($args.Count -eq 0)
 
 } else
 {
-    & cargo run $args
+    & sugar $args
 }
 

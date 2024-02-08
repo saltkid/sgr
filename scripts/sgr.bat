@@ -13,7 +13,7 @@ if "%~1"=="" (
     goto select_repos
 )
 if not "%~1"=="" (
-    cargo run %*
+    sugar %*
     goto end
 )
 
